@@ -1,64 +1,183 @@
 function X = automate()
+	
 	tic
-	%-- 2011 Disaster City --%
-	directory = ('images/2011DC-2/');
-	segmentation('69_d.png', directory);
-	segmentation('463_d.png', directory);
-	segmentation('770_d.png', directory);
-	segmentation('780_d.png', directory);
-	segmentation('1815_d.png', directory);
-	segmentation('1953_d.png', directory);
-	segmentation('2223_d.png', directory);
-	segmentation('2430_d.png', directory);
-	segmentation('2440_d.png', directory);
-	segmentation('2450_d.png', directory);
-	segmentation('2490_d.png', directory);
-	segmentation('2550_d.png', directory);
-	segmentation('2580_d.png', directory);
-	segmentation('2700_d.png', directory);
-	segmentation('3160_d.png', directory);
-	segmentation('3170_d.png', directory);
-	segmentation('3190_d.png', directory);
-	segmentation('3200_d.png', directory);
-	segmentation('3220_d.png', directory);
-	segmentation('3240_d.png', directory);
-	segmentation('3250_d.png', directory);
-	segmentation('3280_d.png', directory);
-	segmentation('3320_d.png', directory);
-	segmentation('3648_d.png', directory);
-	segmentation('3800_d.png', directory);
-	segmentation('3918_d.png', directory);
-	segmentation('3932_d.png', directory);
-	segmentation('4100_d.png', directory);
-	segmentation('4600_d.png', directory);
-	segmentation('4832_d.png', directory);
-	segmentation('5198_d.png', directory);
-	segmentation('5800_d.png', directory);
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%  # superPixels
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	
+	%nC = 9; % nC is the target number of superpixels.
+	depthThreshold = 20; %--min depth from surrounding region in cm
+	boundingBoxThresh = 55;  %--percent of bounding box area region must fill
+	minHoleThresh = 100;  %--width in pixels
+	rbgRegionContrastThresh = 1500;  %--in pixel intensity
 
-	%-- 2012 UCRT 1 --%
-	directory = ('images/2012UCRT-1/');
-	segmentation('1400_d.png', directory);
-	segmentation('2000_d.png', directory);
-	segmentation('5200_d.png', directory);
+	nC = 3;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
 
-	%-- 2012 UCRT 2 --%
-	directory = ('images/2012UCRT-2/');
-	segmentation('700_d.png', directory);
-	segmentation('1300_d.png', directory);
-	segmentation('2100_d.png', directory);
-	segmentation('2200_d.png', directory);
+	nC = 4;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
 
-	%-- 2012 UCRT 3 --%
-	directory = ('images/2012UCRT-3/');
-	segmentation('3000_d.png', directory);
-	segmentation('3027_d.png', directory);
-	segmentation('3114_d.png', directory);
-	segmentation('6400_d.png', directory);
-	segmentation('6800_d.png', directory);
-	segmentation('7000_d.png', directory);
-	segmentation('7019_d.png', directory);
-	segmentation('7029_d.png', directory);
-	segmentation('7057_d.png', directory);
-	segmentation('7075_d.png', directory);
+	nC = 5;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+
+	nC = 6;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+	
+	nC = 7;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+	
+	nC = 8;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+
+	nC = 9;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+	
+	nC = 10;
+	callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+
+	nC = 11;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);	
+	
+	nC = 12;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+
+	nC = 13;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);	
+	
+	nC = 14;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+
+	nC = 15;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);	
+	
+	nC = 16;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+
+	nC = 20;
+	callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+
+
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%  Depth Threshold
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	nC = 9; % nC is the target number of superpixels.
+	%depthThreshold = 100; %--min depth from surrounding region in cm
+	boundingBoxThresh = 35;  %--percent of bounding box area region must fill
+	minHoleThresh = 100;  %--width in pixels
+	rbgRegionContrastThresh = 1500;  %--in pixel intensity
+
+	depthThreshold = 25; %--min depth from surrounding region in cm
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+
+	depthThreshold = 50; %--min depth from surrounding region in cm	
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+
+	depthThreshold = 100; %--min depth from surrounding region in cm
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+	
+	depthThreshold = 150; %--min depth from surrounding region in cm
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+
+	depthThreshold = 200; %--min depth from surrounding region in cm
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+
+	depthThreshold = 250; %--min depth from surrounding region in cm
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+
+	depthThreshold = 300; %--min depth from surrounding region in cm
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+	
+
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%  Bounding Box Percent
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	nC = 9; % nC is the target number of superpixels.
+	depthThreshold = 100; %--min depth from surrounding region in cm
+	%boundingBoxThresh = 50;  %--percent of bounding box area region must fill
+	minHoleThresh = 100;  %--width in pixels
+	rbgRegionContrastThresh = 1500;  %--in pixel intensity
+
+	boundingBoxThresh = 35;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+
+	boundingBoxThresh = 40;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+	
+	boundingBoxThresh = 45;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+
+	boundingBoxThresh = 50;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+
+	boundingBoxThresh = 55;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+
+	boundingBoxThresh = 60;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+	
+	boundingBoxThresh = 65;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+	
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%  Minimum Width
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	nC = 9; % nC is the target number of superpixels.
+	depthThreshold = 100; %--min depth from surrounding region in cm
+	boundingBoxThresh = 35;  %--percent of bounding box area region must fill
+	%minHoleThresh = 100;  %--width in pixels
+	rbgRegionContrastThresh = 1500;  %--in pixel intensity
+
+	minHoleThresh = 25;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+
+	minHoleThresh = 50;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+	
+	minHoleThresh = 75;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+
+	minHoleThresh = 100;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+
+	minHoleThresh = 125;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+
+	minHoleThresh = 150;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+	
+	minHoleThresh = 175;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+	
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%  Hole Grayscale Contrast
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	nC = 9; % nC is the target number of superpixels.
+	depthThreshold = 100; %--min depth from surrounding region in cm
+	boundingBoxThresh = 35;  %--percent of bounding box area region must fill
+	minHoleThresh = 100;  %--width in pixels
+	%rbgRegionContrastThresh = 250;  %--in pixel intensity
+
+	rbgRegionContrastThresh = 250;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+	
+	rbgRegionContrastThresh = 500;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+
+	rbgRegionContrastThresh = 750;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+
+	rbgRegionContrastThresh = 1000;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+
+	rbgRegionContrastThresh = 1250;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+	
+	rbgRegionContrastThresh = 1500;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+
+	rbgRegionContrastThresh = 1750;
+	%callSeg(nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh);
+	
+	
 	toc
 end
