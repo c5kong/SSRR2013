@@ -1,21 +1,22 @@
-function [ X ] = segmentation(depthImage, baseDirectory)
-	tic;
+function [ X ] = segmentation(frameNumber, baseDirectory)
 	close all;
 	clc;
 
 	%//=======================================================================
 	%// Load Images
 	%//=======================================================================
-	depthImage	
-	directory = strcat(baseDirectory, 'depth/');
-	im_d = imread(strcat(directory, depthImage));
-	img = im_d;
-	grey_img = img;
+	frameNumber		
+	depthDirectory = strcat(baseDirectory, 'depth/');
+	rgbDirectory = strcat(baseDirectory, 'rgb/');
+	depthImage = strcat(frameNumber, '_d.png');
+	rgbImage = strcat(frameNumber, '_rgb.png');
+	img = imread(strcat(depthDirectory, depthImage));
+	gray_img = rgb2gray(imread(strcat(rgbDirectory, rgbImage)));
 
 	%//=======================================================================
 	%// Superpixel segmentation
 	%//=======================================================================
-	nC = 15; % nC is the target number of superpixels.
+	nC = 5; % nC is the target number of superpixels.
 	lambda_prime = 0.5;
 	sigma = 5.0; 
 	conn8 = 1; % flag for using 8 connected grid graph (default setting).
@@ -33,7 +34,7 @@ function [ X ] = segmentation(depthImage, baseDirectory)
 	end
 	
 	%//=======================================================================
-	%// Find average pixel intensity for each region and save Distance in CM
+	%// Find average pixel intensity for each region and save Distance in cm
 	%//=======================================================================
 	regions = single(zeros(nC, 1));	
 	meterToCentimetersRatio = 100;
@@ -43,9 +44,8 @@ function [ X ] = segmentation(depthImage, baseDirectory)
 		regionSum = uint64(0);
 		region_idx = find(labels==i);
 		for j=1:length(region_idx)
-			regionSum = uint64(im_d(region_idx(j))) + regionSum;
+			regionSum = uint64(img(region_idx(j))) + regionSum;
 		end
-		regionSum;
 		
 		if regionSum ~=0
 			regions(i, 1) = depthTable(regionSum/length(region_idx))*meterToCentimetersRatio;
@@ -112,7 +112,20 @@ function [ X ] = segmentation(depthImage, baseDirectory)
 
 	%figure, imshow(holes);
 
-
+	%//=======================================================================
+	%// Find Grayscale Contrast Value for Low Regions
+	%//=======================================================================
+	%figure, imshow(gray_img, []);
+	rbgRegionContrast=[];
+	for i = 1:length(holeList)
+		rgbRegionSum = uint64(0);
+		region_idx = find(labels==i);
+		for j=1:length(region_idx)
+			rgbRegionSum = uint64(gray_img(region_idx(j))) + rgbRegionSum;
+		end
+		rbgRegionContrast(i,1) = rgbRegionSum/length(region_idx);	
+	end
+	
 
 	%//=======================================================================
 	%// Find Difference of Candidate Region Area and Boundary Box Area
@@ -150,7 +163,7 @@ function [ X ] = segmentation(depthImage, baseDirectory)
 	%// Display
 	%//=======================================================================
 	outputDirectory = strcat(baseDirectory, 'output/output_');
-	
+		
 	%Number of Super Pixels
 	outputDirectory = strcat(outputDirectory, num2str(nC) );
 	outputDirectory = strcat(outputDirectory, '_');
@@ -168,14 +181,21 @@ function [ X ] = segmentation(depthImage, baseDirectory)
 	minHoleThresh = 100;
 	outputDirectory = strcat(outputDirectory, num2str(minHoleThresh));
 	outputDirectory = strcat(outputDirectory, '_');
+	
+	%Avg Pixel intensity for region in rgb frame
+	rbgRegionContrastThresh=150; %pixel intensity
+	outputDirectory = strcat(outputDirectory, num2str(rbgRegionContrastThresh));
+	outputDirectory = strcat(outputDirectory, '_');
 		
-	perimAreaThresh = 0.2;
+	%perimAreaThresh = 0.2;
 	
 	%figure, imshow(holes), colormap(gray), axis off, hold on
 	for i = 1:length(holeList)	
-		if (bbAreaLessHoleArea(i,1) < (boundingBoxArea(i,1) * (boundingBoxThresh/100))) & (minHoleDistance(i,1) > minHoleThresh)
+		if (bbAreaLessHoleArea(i,1) < (boundingBoxArea(i,1) * (boundingBoxThresh/100)))...
+		& (minHoleDistance(i,1) > minHoleThresh)...
+		& (rbgRegionContrast(i,1) < rbgRegionContrastThresh)
 	%		[rows cols] = ind2sub(size(img), find(labels==holeList(i)));
-	%		rectangle('Position',[min(cols) min(rows)  (max(cols)-min(cols)) (max(rows)-min(rows)) ], 'LineWidth',1, 'EdgeColor','g');
+	%		rectangle('Position',[min(cols) min(rows)  (max(cols)-min(cols)) (max(rows)-min(rows)) ], 'LineWidth', 2, 'EdgeColor','g');
 			M{1, 1} = depthImage;
 			M{1, 2} = holeList(i);
 			dlmcell(strcat(outputDirectory, '.csv'), M, ',', '-a');
@@ -186,7 +206,7 @@ function [ X ] = segmentation(depthImage, baseDirectory)
 	%imwrite(X, strcat(outputDirectory, depthImage));
 	%hold off;
 
-	toc
+
 end
 
 
