@@ -18,7 +18,7 @@ depthImage = '770_d.png';
 %//=======================================================================
 %// Load Images
 %//=======================================================================
-directory = 'images/DC2011-2/';
+directory = 'images/2011DC-2/';
 im_d = imread(strcat(directory, depthImage));
 img = im_d;
 grey_img = img;
@@ -171,13 +171,17 @@ boundingBoxThresh = 0.5;
 perimAreaThresh = 0.2;
 minHoleThresh = 100;
 
-figure, imagesc(holes), colormap(gray), hold on
+figure, imshow(holes), colormap(gray), axis off, hold on
 for i = 1:length(holeList)	
 	if (bbAreaLessHoleArea(i,1) < (boundingBoxArea(i,1) * boundingBoxThresh)) & (minHoleDistance(i,1) > minHoleThresh)
 		[rows cols] = ind2sub(size(labels), find(labels==holeList(i)));
 		rectangle('Position',[min(cols) min(rows)  (max(cols)-min(cols)) (max(rows)-min(rows)) ], 'LineWidth',1, 'EdgeColor','g');
 	end
 end
+f=getframe(gca);
+[X, map] = frame2im(f);
+filename ='_output.png'
+imwrite(X, strcat(depthImage, filename));
 hold off;
 
 
