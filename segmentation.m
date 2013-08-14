@@ -1,7 +1,13 @@
-function [ X ] = segmentation(frameNumber, baseDirectory)
+function [ X ] = segmentation(frameNumber, baseDirectory, nC, depthThreshold, boundingBoxThresh, minHoleThresh, rbgRegionContrastThresh)
 	close all;
 	clc;
 
+	depthScore =[];
+	widthScore =[];
+	bbScore =[];
+	contrastScore =[];
+	detectionScore=[];
+	
 	%//=======================================================================
 	%// Load Images
 	%//=======================================================================
@@ -16,7 +22,7 @@ function [ X ] = segmentation(frameNumber, baseDirectory)
 	%//=======================================================================
 	%// Superpixel segmentation
 	%//=======================================================================
-	nC = 5; % nC is the target number of superpixels.
+	
 	lambda_prime = 0.5;
 	sigma = 5.0; 
 	conn8 = 1; % flag for using 8 connected grid graph (default setting).
@@ -77,8 +83,7 @@ function [ X ] = segmentation(frameNumber, baseDirectory)
 	%//=======================================================================
 
 	holes = zeros(size(img));
-	count = 0;
-	depthThreshold = 150; %-- in cm
+	count = 0;	
 	holeList =[];
 	for i=1:nC
 		flag = 0; %-- set to false
@@ -101,11 +106,23 @@ function [ X ] = segmentation(frameNumber, baseDirectory)
 		end
 		
 		if flag == 1			
-			if closestNeighbour > depthThreshold
+			if closestNeighbour > 25		
 				count = count + 1;
 				holeList(count, 1) = i;
 				tempImage = labels == i;
 				holes = holes | tempImage;		
+				
+				if closestNeighbour > 200
+					depthScore(i,1) = 0.25;
+				elseif closestNeighbour > 150
+					depthScore(i,1) = 0.2;
+				elseif closestNeighbour > 100
+					depthScore(i,1) = 0.15;
+				elseif closestNeighbour > 50
+					depthScore(i,1) = 0.10;
+				else
+					depthScore(i,1) = 0.05;					
+				end								
 			end
 		end	
 	end
@@ -158,53 +175,74 @@ function [ X ] = segmentation(frameNumber, baseDirectory)
 		minHoleDistance(i,1)= min(holeWidth, holeHeight);
 	end
 
+	
+	%//=======================================================================
+	%// Calculate Detection Scores
+	%//=======================================================================
+	for i = 1:length(holeList)
+		if minHoleDistance(i,1) > 125
+			widthScore(i,1) = 0.25;
+		elseif minHoleDistance(i,1) > 100
+			widthScore(i,1) = 0.2; 
+		elseif minHoleDistance(i,1) > 75
+			widthScore(i,1) = 0.15; 
+		elseif minHoleDistance(i,1) > 50
+			widthScore(i,1) = 0.1; 
+		else
+			widthScore(i,1) = 0.05; 
+		end
+		
+		if (bbAreaLessHoleArea(i,1) < (boundingBoxArea(i,1) * 0.55))
+			bbScore(i,1) = 0.05;
+		elseif (bbAreaLessHoleArea(i,1) < (boundingBoxArea(i,1) * 0.50))
+			bbScore(i,1) = 0.10;
+		elseif (bbAreaLessHoleArea(i,1) < (boundingBoxArea(i,1) * 0.45))
+			bbScore(i,1) = 0.15;
+		elseif (bbAreaLessHoleArea(i,1) < (boundingBoxArea(i,1) * 0.40))
+			bbScore(i,1) = 0.20;
+		else
+			bbScore(i,1) = 0.25;
+		end
+		
+		if (rbgRegionContrast(i,1) < 300)
+			contrastScore(i,1) = 0.25;
+		elseif (rbgRegionContrast(i,1) < rbgRegionContrastThresh)
+			contrastScore(i,1) = 0.2;
+		elseif (rbgRegionContrast(i,1) < rbgRegionContrastThresh)
+			contrastScore(i,1) = 0.15;
+		elseif (rbgRegionContrast(i,1) < rbgRegionContrastThresh)
+			contrastScore(i,1) = 0.10;
+		else
+			contrastScore(i,1) = 0.05;
+		end
+		
+		detectionScore(i,1) = depthScore(i,1) + widthScore(i,1) + bbScore(i,1) + contrastScore(i,1));
+	end
 
+	
+	
 	%//=======================================================================
 	%// Display
 	%//=======================================================================
-	outputDirectory = strcat(baseDirectory, 'output/output_');
+	
+	figure, imshow(holes), colormap(gray), axis off, hold on
+	for i = 1:length(detectionScore)	
+		if detectionScore > 0
 		
-	%Number of Super Pixels
-	outputDirectory = strcat(outputDirectory, num2str(nC) );
-	outputDirectory = strcat(outputDirectory, '_');
-	
-	%Hole Depth Threshold
-	outputDirectory = strcat(outputDirectory, num2str(depthThreshold));
-	outputDirectory = strcat(outputDirectory, '_');
-	
-	%Bounding Box
-	boundingBoxThresh = 50;  %--percent of bounding box area region must fill
-	outputDirectory = strcat(outputDirectory, num2str(boundingBoxThresh));
-	outputDirectory = strcat(outputDirectory, '_');
-	
-	%Min Hole Width
-	minHoleThresh = 100;
-	outputDirectory = strcat(outputDirectory, num2str(minHoleThresh));
-	outputDirectory = strcat(outputDirectory, '_');
-	
-	%Avg Pixel intensity for region in rgb frame
-	rbgRegionContrastThresh=150; %pixel intensity
-	outputDirectory = strcat(outputDirectory, num2str(rbgRegionContrastThresh));
-	outputDirectory = strcat(outputDirectory, '_');
-		
-	%perimAreaThresh = 0.2;
-	
-	%figure, imshow(holes), colormap(gray), axis off, hold on
-	for i = 1:length(holeList)	
-		if (bbAreaLessHoleArea(i,1) < (boundingBoxArea(i,1) * (boundingBoxThresh/100)))...
-		& (minHoleDistance(i,1) > minHoleThresh)...
-		& (rbgRegionContrast(i,1) < rbgRegionContrastThresh)
-	%		[rows cols] = ind2sub(size(img), find(labels==holeList(i)));
-	%		rectangle('Position',[min(cols) min(rows)  (max(cols)-min(cols)) (max(rows)-min(rows)) ], 'LineWidth', 2, 'EdgeColor','g');
+			[rows cols] = ind2sub(size(img), find(labels==holeList(i)));
+			rectangle('Position',[min(cols) min(rows)  (max(cols)-min(cols)) (max(rows)-min(rows)) ], 'LineWidth', 4, 'EdgeColor','g');
 			M{1, 1} = depthImage;
-			M{1, 2} = holeList(i);
-			dlmcell(strcat(outputDirectory, '.csv'), M, ',', '-a');
+			M{1, 2} = min(cols);
+			M{1, 3} = min(rows);
+			M{1, 4} = (max(cols)-min(cols));	
+			M{1, 5} = detectionScore;	
+			%dlmcell(strcat(baseDirectory, 'output/output.csv'), M, ',', '-a');
 		end
 	end
-	%f=getframe(gca);
-	%[X, map] = frame2im(f);
+	f=getframe(gca);
+	[X, map] = frame2im(f);
 	%imwrite(X, strcat(outputDirectory, depthImage));
-	%hold off;
+	hold off;
 
 
 end
