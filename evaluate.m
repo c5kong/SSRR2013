@@ -1,8 +1,8 @@
 clear all;
 clc;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-outputFile = ('minDepth/output_9_50_50_100_250_.csv');
-gtFile = ('20_groundTruth.csv');
+outputFile = ('output.csv');
+gtFile = ('groundTruth_perfectdata.csv');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 outputDirectory = ('data/extendedDataset/output/');
@@ -87,7 +87,7 @@ for i = 1:length(dImgs)
 		if strcmp(dImg, gtImg) 			
 			largerArea = max(detectedArea, gtArea);
 			
-			if rectint(dRegion, gtRegion) > (0.5*largerArea)
+			if rectint(dRegion, gtRegion) > (0.5*detectedArea)
 				truePositive = truePositive + 1;	
 			else
 				falsePositive = falsePositive + 1;
@@ -101,10 +101,10 @@ falseNegatives = length(groundTruthPosRegionsX) - truePositive;
 precision =  truePositive/(truePositive+falsePositive);%-- Precision = TP/(TP + FP) 
 recall =  truePositive/length(groundTruthPosRegionsX);%-- Recall = TP/nP,
 
-
+recall 
+precision 
 truePositive
 falseNegatives
 falsePositive
-precision 
-recall 
+
 
