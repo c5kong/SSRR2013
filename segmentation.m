@@ -6,7 +6,9 @@ clc;
 %// Input Images
 %//=======================================================================
 %depthImage = '69_d.png';
-depthImage = '463_d.png';
+%depthImage = '463_d.png';
+%depthImage = '530_d.png';
+depthImage = '770_d.png';
 %depthImage = '786_d.png';
 %depthImage = '2223_d.png';
 %depthImage = '2535_d.png';
@@ -16,7 +18,7 @@ depthImage = '463_d.png';
 %//=======================================================================
 %// Load Images
 %//=======================================================================
-directory = 'images/';
+directory = 'images/DC2011-2/';
 im_d = imread(strcat(directory, depthImage));
 img = im_d;
 grey_img = img;
@@ -85,11 +87,11 @@ end
 %//=======================================================================
 %// Find Lowest Regions
 %//=======================================================================
-threshold = 50;
+
 holes = zeros(size(labels));
 count = 0;
+threshold = 50;
 holeList =[];
-
 for i=1:nC
 	flag = 0; %-- set to false
 	closestNeighbour = regions(i);
@@ -110,7 +112,6 @@ for i=1:nC
 		end		
 	end
 	
-		
 	if flag == 1			
 		if closestNeighbour > threshold
 			count = count + 1;
@@ -120,6 +121,7 @@ for i=1:nC
 		end
 	end	
 end
+
 %figure, imshow(holes);
 
 %//=======================================================================
@@ -134,10 +136,11 @@ end
 %// Find Difference of Candidate Region Area and Boundary Box Area
 %//=======================================================================
 bbAreaLessHoleArea=[];
+boundingBoxArea=[];
 for i = 1:length(holeList)	
 	[rows cols] = ind2sub(size(labels), find(labels==holeList(i)));
-	boundingBoxArea = (max(rows)-min(rows))*(max(cols)-min(cols));
-	bbAreaLessHoleArea(i,1)= boundingBoxArea - length(find(labels==holeList(i)));
+	boundingBoxArea(i,1) = (max(rows)-min(rows))*(max(cols)-min(cols));
+	bbAreaLessHoleArea(i,1)= boundingBoxArea(i,1) - length(find(labels==holeList(i)));
 end
 
 %//=======================================================================
@@ -166,12 +169,13 @@ end
 %//=======================================================================
 boundingBoxThresh = 0.5;
 perimAreaThresh = 0.2;
-minHoleThresh = 150;
+minHoleThresh = 100;
 
 figure, imagesc(holes), colormap(gray), hold on
 for i = 1:length(holeList)	
-	if (bbAreaLessHoleArea(i,1) < (boundingBoxArea * boundingBoxThresh)) & (minHoleDistance(i,1) > minHoleThresh)
-		rectangle('Position',[min(rows)-5 min(cols)-8 (max(rows)-min(rows)+12) (max(cols)-min(cols)+15)], 'LineWidth',1, 'EdgeColor','g');
+	if (bbAreaLessHoleArea(i,1) < (boundingBoxArea(i,1) * boundingBoxThresh)) & (minHoleDistance(i,1) > minHoleThresh)
+		[rows cols] = ind2sub(size(labels), find(labels==holeList(i)));
+		rectangle('Position',[min(cols) min(rows)  (max(cols)-min(cols)) (max(rows)-min(rows)) ], 'LineWidth',1, 'EdgeColor','g');
 	end
 end
 hold off;
