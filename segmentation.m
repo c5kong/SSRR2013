@@ -5,7 +5,7 @@ function [ X ] = segmentation(depthImage, directory)
 	%//=======================================================================
 	%// Load Images
 	%//=======================================================================
-
+	depthImage
 	im_d = imread(strcat(directory, depthImage));
 	img = im_d;
 	grey_img = img;
@@ -19,19 +19,34 @@ function [ X ] = segmentation(depthImage, directory)
 	conn8 = 1; % flag for using 8 connected grid graph (default setting).
 
 	[labels] = mex_ers(double(img),nC);%// Call the mex function for superpixel segmentation\
-	figure, imshow(labels,[]);
+	%figure, imshow(labels,[]);
 
+	%//=======================================================================
+	%// Create Depth Table
+	%//=======================================================================
+	depthTable = single(zeros(2048, 1));
+	for i = 1:2048
+		depthTable(i) = 0.1236 * tan(i/2842.5 + 1.1863);
+	end
+	
 	%//=======================================================================
 	%// Find average pixel intensity for each region
 	%//=======================================================================
-	regions = uint64(zeros(nC, 1));
+	regions = single(zeros(nC, 1));	
+	meterToCentimetersRatio = 100;
+	neighbours = zeros(nC, nC);	
+	
 	for i=1:(nC)
+		regionSum = uint64(0);
 		region_idx = find(labels==i);
 		for j=1:length(region_idx)
-			regions(i, 1) = uint64(im_d(ind2sub(size(labels), region_idx(j)))) + regions(i, 1);		
+			regionSum = uint64(im_d(region_idx(j))) + regionSum;
 		end
-		regions(i, 1) = regions(i, 1)/length(region_idx);
-		if regions(i,1) > 2000
+		regionSum;
+		
+		if regionSum ~=0
+			regions(i, 1) = depthTable(regionSum/length(region_idx))*meterToCentimetersRatio;
+		else
 			regions(i, 1) = 0;
 		end
 	end
@@ -39,7 +54,7 @@ function [ X ] = segmentation(depthImage, directory)
 	%//=======================================================================
 	%// Find neighbours
 	%//=======================================================================
-	neighbours = zeros(nC, nC);
+
 	for i=1:nC    
 		for j=1:nC
 			image1 = labels == i;
@@ -55,29 +70,12 @@ function [ X ] = segmentation(depthImage, directory)
 	end
 
 	%//=======================================================================
-	%//  Visualize Neighbourhood
-	%//=======================================================================
-	regionToVisualize = 7;
-	nImage = zeros(size(labels));
-	for i=1:nC    
-		for j=1:nC
-			if i == 15
-				if neighbours(i,j) == regionToVisualize
-					image1 = labels == j;
-					nImage = nImage | image1;
-				end	
-			end		
-		end		
-	end
-	%figure, imshow(nImage);
-
-	%//=======================================================================
 	%// Find Lowest Regions
 	%//=======================================================================
 
 	holes = zeros(size(labels));
 	count = 0;
-	depthThreshold = 50;
+	depthThreshold = 150; %-- in cm
 	holeList =[];
 	for i=1:nC
 		flag = 0; %-- set to false
@@ -111,13 +109,7 @@ function [ X ] = segmentation(depthImage, directory)
 
 	%figure, imshow(holes);
 
-	%//=======================================================================
-	%// Create Depth Table
-	%//=======================================================================
-	depthTable = single(zeros(2048, 1));
-	for i = 1:2048
-		depthTable(i) = 0.1236 * tan(i/2842.5 + 1.1863);
-	end
+
 
 	%//=======================================================================
 	%// Find Difference of Candidate Region Area and Boundary Box Area
@@ -154,39 +146,42 @@ function [ X ] = segmentation(depthImage, directory)
 	%//=======================================================================
 	%// Display
 	%//=======================================================================
-	boundingBoxThresh = 50;  %--percent of bounding box area region must fill
-	perimAreaThresh = 0.2;
-	minHoleThresh = 100;
-
-	figure, imshow(holes), colormap(gray), axis off, hold on
-	for i = 1:length(holeList)	
-		if (bbAreaLessHoleArea(i,1) < (boundingBoxArea(i,1) * (boundingBoxThresh/100))) & (minHoleDistance(i,1) > minHoleThresh)
-			[rows cols] = ind2sub(size(labels), find(labels==holeList(i)));
-			rectangle('Position',[min(cols) min(rows)  (max(cols)-min(cols)) (max(rows)-min(rows)) ], 'LineWidth',1, 'EdgeColor','g');
-		end
-	end
-	f=getframe(gca);
-	[X, map] = frame2im(f);
 	outputDirectory = strcat(directory, 'output/output_');
 	
 	%Number of Super Pixels
-	outputDirectory = strcat(outputDirectory, '15');
+	outputDirectory = strcat(outputDirectory, num2str(nC) );
 	outputDirectory = strcat(outputDirectory, '_');
 	
 	%Hole Depth Threshold
-	outputDirectory = strcat(outputDirectory, '50');
+	outputDirectory = strcat(outputDirectory, num2str(depthThreshold));
 	outputDirectory = strcat(outputDirectory, '_');
 	
 	%Bounding Box
-	outputDirectory = strcat(outputDirectory, '50');
+	boundingBoxThresh = 50;  %--percent of bounding box area region must fill
+	outputDirectory = strcat(outputDirectory, num2str(boundingBoxThresh));
 	outputDirectory = strcat(outputDirectory, '_');
 	
 	%Min Hole Width
-	outputDirectory = strcat(outputDirectory, '100');
+	minHoleThresh = 100;
+	outputDirectory = strcat(outputDirectory, num2str(minHoleThresh));
 	outputDirectory = strcat(outputDirectory, '_');
+		
+	perimAreaThresh = 0.2;
 	
-	imwrite(X, strcat(outputDirectory, depthImage));
-	hold off;
+	%figure, imshow(holes), colormap(gray), axis off, hold on
+	for i = 1:length(holeList)	
+		if (bbAreaLessHoleArea(i,1) < (boundingBoxArea(i,1) * (boundingBoxThresh/100))) & (minHoleDistance(i,1) > minHoleThresh)
+	%		[rows cols] = ind2sub(size(labels), find(labels==holeList(i)));
+	%		rectangle('Position',[min(cols) min(rows)  (max(cols)-min(cols)) (max(rows)-min(rows)) ], 'LineWidth',1, 'EdgeColor','g');
+			M{1, 1} = depthImage;
+			M{1, 2} = holeList(i);
+			dlmcell(strcat(outputDirectory, '.csv'), M, ',', '-a');
+		end
+	end
+	%f=getframe(gca);
+	%[X, map] = frame2im(f);
+	%imwrite(X, strcat(outputDirectory, depthImage));
+	%hold off;
 
 end
 
