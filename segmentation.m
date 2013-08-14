@@ -30,7 +30,7 @@ sigma = 5.0;
 conn8 = 1; % flag for using 8 connected grid graph (default setting).
 
 [labels] = mex_ers(double(img),nC);%// Call the mex function for superpixel segmentation\
-figure, imshow(labels,[]);
+%figure, imshow(labels,[]);
 
 %//=======================================================================
 %// Find average pixel intensity for each region
@@ -88,7 +88,8 @@ end
 threshold = 50;
 holes = zeros(size(labels));
 count = 0;
- 
+holeList =[];
+
 for i=1:nC
 	flag = 0; %-- set to false
 	closestNeighbour = regions(i);
@@ -113,13 +114,13 @@ for i=1:nC
 	if flag == 1			
 		if closestNeighbour > threshold
 			count = count + 1;
+			holeList(count, 1) = i;
 			tempImage = labels == i;
 			holes = holes | tempImage;		
 		end
 	end	
 end
-figure, imshow(holes);
-
+%figure, imshow(holes);
 
 %//=======================================================================
 %// Create Depth Table
@@ -129,12 +130,51 @@ for i = 1:2048
 	depthTable(i) = 0.1236 * tan(i/2842.5 + 1.1863);
 end
 
+%//=======================================================================
+%// Find Difference of Candidate Region Area and Boundary Box Area
+%//=======================================================================
+bbAreaLessHoleArea=[];
+for i = 1:length(holeList)	
+	[rows cols] = ind2sub(size(labels), find(labels==holeList(i)));
+	boundingBoxArea = (max(rows)-min(rows))*(max(cols)-min(cols));
+	bbAreaLessHoleArea(i,1)= boundingBoxArea - length(find(labels==holeList(i)));
+end
 
 %//=======================================================================
-%// Find Dimensions of hole
+%// Find Ratio of Region Area to Perimeter
 %//=======================================================================
+perimAreaRatio=[];
+for i = 1:length(holeList)	
+	perim = length(find(bwperim(labels==holeList(i))>0));
+	perimAreaRatio(i,1)=perim/length(find(labels==holeList(i)));
+end
+
+%//=======================================================================
+%// Find Minimum Width/Height
+%//=======================================================================
+minHoleDistance=[];
+for i = 1:length(holeList)	
+	[rows cols] = ind2sub(size(labels), find(labels==holeList(i)));
+	holeWidth = (max(rows)-min(rows));
+	holeHeight = (max(cols)-min(cols));
+	minHoleDistance(i,1)= min(holeWidth, holeHeight);
+end
 
 
+%//=======================================================================
+%// Display
+%//=======================================================================
+boundingBoxThresh = 0.5;
+perimAreaThresh = 0.2;
+minHoleThresh = 150;
+
+figure, imagesc(holes), colormap(gray), hold on
+for i = 1:length(holeList)	
+	if (bbAreaLessHoleArea(i,1) < (boundingBoxArea * boundingBoxThresh)) & (minHoleDistance(i,1) > minHoleThresh)
+		rectangle('Position',[min(rows)-5 min(cols)-8 (max(rows)-min(rows)+12) (max(cols)-min(cols)+15)], 'LineWidth',1, 'EdgeColor','g');
+	end
+end
+hold off;
 
 
 
