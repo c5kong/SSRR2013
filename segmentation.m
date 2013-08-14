@@ -79,4 +79,32 @@ for i=1:nC
 end
 toc
 
+%//=======================================================================
+%// Find Hole
+%//=======================================================================
 
+threshold = 20;
+holes = zeros(size(labels));
+count = 0;
+ 
+for i=1:nC
+	flag = 0; %-- set to false
+	for j=1:nC
+		if neighbours(i, j) == 1 
+			if (regions(i) < regions(j)) && abs((regions(j)-regions(i)) > threshold)
+				flag = 1; %region intensity is less than neighbour
+			else
+				flag = 0; %neighbour intensity is less than region
+				break;
+			end			
+		end		
+
+	end
+
+	if flag == 1
+		count = count + 1
+		tempImage = labels == i;
+		holes = holes | tempImage;		
+	end	
+end
+figure, imshow(holes);
