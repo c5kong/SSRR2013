@@ -1,11 +1,13 @@
-function [ X ] = segmentation(depthImage, directory)
+function [ X ] = segmentation(depthImage, baseDirectory)
+	tic;
 	close all;
 	clc;
 
 	%//=======================================================================
 	%// Load Images
 	%//=======================================================================
-	depthImage
+	depthImage	
+	directory = strcat(baseDirectory, 'depth/');
 	im_d = imread(strcat(directory, depthImage));
 	img = im_d;
 	grey_img = img;
@@ -18,7 +20,8 @@ function [ X ] = segmentation(depthImage, directory)
 	sigma = 5.0; 
 	conn8 = 1; % flag for using 8 connected grid graph (default setting).
 
-	[labels] = mex_ers(double(img),nC);%// Call the mex function for superpixel segmentation\
+	[labels] = mex_ers(double(img),nC);%-- Call the mex function for superpixel segmentation\
+	labels(labels == 0) = nC; %-- Normalize regions to matlab convention of 1:nC instead of 0:nC-1
 	%figure, imshow(labels,[]);
 
 	%//=======================================================================
@@ -30,7 +33,7 @@ function [ X ] = segmentation(depthImage, directory)
 	end
 	
 	%//=======================================================================
-	%// Find average pixel intensity for each region
+	%// Find average pixel intensity for each region and save Distance in CM
 	%//=======================================================================
 	regions = single(zeros(nC, 1));	
 	meterToCentimetersRatio = 100;
@@ -73,7 +76,7 @@ function [ X ] = segmentation(depthImage, directory)
 	%// Find Lowest Regions
 	%//=======================================================================
 
-	holes = zeros(size(labels));
+	holes = zeros(size(img));
 	count = 0;
 	depthThreshold = 150; %-- in cm
 	holeList =[];
@@ -117,7 +120,7 @@ function [ X ] = segmentation(depthImage, directory)
 	bbAreaLessHoleArea=[];
 	boundingBoxArea=[];
 	for i = 1:length(holeList)	
-		[rows cols] = ind2sub(size(labels), find(labels==holeList(i)));
+		[rows cols] = ind2sub(size(img), find(labels==holeList(i)));
 		boundingBoxArea(i,1) = (max(rows)-min(rows))*(max(cols)-min(cols));
 		bbAreaLessHoleArea(i,1)= boundingBoxArea(i,1) - length(find(labels==holeList(i)));
 	end
@@ -136,7 +139,7 @@ function [ X ] = segmentation(depthImage, directory)
 	%//=======================================================================
 	minHoleDistance=[];
 	for i = 1:length(holeList)	
-		[rows cols] = ind2sub(size(labels), find(labels==holeList(i)));
+		[rows cols] = ind2sub(size(img), find(labels==holeList(i)));
 		holeWidth = (max(rows)-min(rows));
 		holeHeight = (max(cols)-min(cols));
 		minHoleDistance(i,1)= min(holeWidth, holeHeight);
@@ -146,7 +149,7 @@ function [ X ] = segmentation(depthImage, directory)
 	%//=======================================================================
 	%// Display
 	%//=======================================================================
-	outputDirectory = strcat(directory, 'output/output_');
+	outputDirectory = strcat(baseDirectory, 'output/output_');
 	
 	%Number of Super Pixels
 	outputDirectory = strcat(outputDirectory, num2str(nC) );
@@ -171,7 +174,7 @@ function [ X ] = segmentation(depthImage, directory)
 	%figure, imshow(holes), colormap(gray), axis off, hold on
 	for i = 1:length(holeList)	
 		if (bbAreaLessHoleArea(i,1) < (boundingBoxArea(i,1) * (boundingBoxThresh/100))) & (minHoleDistance(i,1) > minHoleThresh)
-	%		[rows cols] = ind2sub(size(labels), find(labels==holeList(i)));
+	%		[rows cols] = ind2sub(size(img), find(labels==holeList(i)));
 	%		rectangle('Position',[min(cols) min(rows)  (max(cols)-min(cols)) (max(rows)-min(rows)) ], 'LineWidth',1, 'EdgeColor','g');
 			M{1, 1} = depthImage;
 			M{1, 2} = holeList(i);
@@ -183,6 +186,7 @@ function [ X ] = segmentation(depthImage, directory)
 	%imwrite(X, strcat(outputDirectory, depthImage));
 	%hold off;
 
+	toc
 end
 
 
