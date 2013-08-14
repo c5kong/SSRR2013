@@ -4,7 +4,7 @@ function [ X ] = segmentation(frameNumber, baseDirectory)
 	frameNumber
 	depthScore =[];
 	widthScore =[];
-	bbScore =[];
+	aspectRatioScore =[];
 	contrastScore =[];
 	detectionScore=[];
 	
@@ -159,12 +159,12 @@ function [ X ] = segmentation(frameNumber, baseDirectory)
 	%//=======================================================================
 	%// Find Difference of Candidate Region Area and Boundary Box Area
 	%//=======================================================================
-	bbAreaLessHoleArea=[];
+	aspectRatio=[];
 	boundingBoxArea=[];
 	for i = 1:length(holeList)	
 		[rows cols] = ind2sub(size(img), find(labels==holeList(i)));
 		boundingBoxArea(i,1) = (max(rows)-min(rows))*(max(cols)-min(cols));
-		bbAreaLessHoleArea(i,1)= boundingBoxArea(i,1) - length(find(labels==holeList(i)));
+		aspectRatio(i,1)= boundingBoxArea(i,1) - length(find(labels==holeList(i)));
 	end
 
 	%//=======================================================================
@@ -179,12 +179,12 @@ function [ X ] = segmentation(frameNumber, baseDirectory)
 	%//=======================================================================
 	%// Find Minimum Width/Height
 	%//=======================================================================
-	minHoleDistance=[];
+	minWidth=[];
 	for i = 1:length(holeList)	
 		[rows cols] = ind2sub(size(img), find(labels==holeList(i)));
 		holeWidth = (max(rows)-min(rows));
 		holeHeight = (max(cols)-min(cols));
-		minHoleDistance(i,1)= min(holeWidth, holeHeight);
+		minWidth(i,1)= min(holeWidth, holeHeight);
 	end
 
 	
@@ -192,26 +192,26 @@ function [ X ] = segmentation(frameNumber, baseDirectory)
 	%// Calculate Detection Scores
 	%//=======================================================================
 	for i = 1:length(holeList)
-		if minHoleDistance(i,1) > 150
+		if minWidth(i,1) > 150
 			widthScore(i,1) = 0.2; 
-		elseif minHoleDistance(i,1) > 150
+		elseif minWidth(i,1) > 150
 			widthScore(i,1) = 0.15; 
-		elseif minHoleDistance(i,1) > 100
+		elseif minWidth(i,1) > 100
 			widthScore(i,1) = 0.1; 
-		elseif minHoleDistance(i,1) > 50
+		elseif minWidth(i,1) > 50
 			widthScore(i,1) = 0.05; 
 		else
 			widthScore(i,1) = 0; 
 		end
 		
-		if (bbAreaLessHoleArea(i,1) < (boundingBoxArea(i,1) * 0.55))
-			bbScore(i,1) = 0.05;
-		elseif (bbAreaLessHoleArea(i,1) < (boundingBoxArea(i,1) * 0.45))
-			bbScore(i,1) = 0.10;
-		elseif (bbAreaLessHoleArea(i,1) < (boundingBoxArea(i,1) * 0.35))
-			bbScore(i,1) = 0.15;
+		if (aspectRatio(i,1) < (boundingBoxArea(i,1) * 0.55))
+			aspectRatioScore(i,1) = 0.05;
+		elseif (aspectRatio(i,1) < (boundingBoxArea(i,1) * 0.45))
+			aspectRatioScore(i,1) = 0.10;
+		elseif (aspectRatio(i,1) < (boundingBoxArea(i,1) * 0.35))
+			aspectRatioScore(i,1) = 0.15;
 		else
-			bbScore(i,1) = 0;
+			aspectRatioScore(i,1) = 0;
 		end
 		
 		if (rbgRegionContrast(i,1) < 100)
@@ -224,7 +224,7 @@ function [ X ] = segmentation(frameNumber, baseDirectory)
 			contrastScore(i,1) = 0.0;
 		end
 		
-		detectionScore(i,1) = depthScore(i,1) + widthScore(i,1) + bbScore(i,1) + contrastScore(i,1);
+		detectionScore(i,1) = depthScore(i,1) + widthScore(i,1) + aspectRatioScore(i,1) + contrastScore(i,1);
 	end
 
 	
