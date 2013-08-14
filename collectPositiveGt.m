@@ -3,7 +3,7 @@ function X = evaluateAll()
 	
 	%-- True Positive --%
 	nC = 20; % nC is the target number of superpixels.
-	directory = ('data/extendedDataset/depth/');
+	directory = ('data/SSRR2013/depth/');
 	%groundTruth('1_d.png', directory, nC);
 	%groundTruth('2_d.png', directory, nC);
 	%groundTruth('3_d.png', directory, nC);

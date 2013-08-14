@@ -2,13 +2,13 @@ function [ X ] = evaluate(detectionScore)
 
 	clc;
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	outputFile = ('output_allData.csv');
-	gtFile = ('groundTruth.csv');
+	outputFile = ('output_perfectData.csv');
+	gtFile = ('groundTruth_perfectdata.csv');
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 	
-	outputDirectory = ('data/extendedDataset/output/');
-	gtDirectory = ('data/extendedDataset/output/groundTruth/');
+	outputDirectory = ('data/SSRR2013/output/');
+	gtDirectory = ('data/SSRR2013/output/groundTruth/');
 
 
 	fileID = fopen(strcat(outputDirectory, outputFile));
